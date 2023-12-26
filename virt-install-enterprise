@@ -1,0 +1,115 @@
+#!/bin/sh
+
+set -eu
+umask 077
+
+CONSOLE="ttyS0"
+CPUS="2"
+DISK="20"
+GRAPHICS="none"
+MEMORY="2048"
+NETWORK="network=default"
+RELEASE="9"
+
+while getopts c:d:gm:n:r:-: OPT; do
+    case "$OPT" in
+        -)
+            case "$OPTARG" in
+                alma|rocky)
+                    DISTRO="$OPTARG"
+                    ;;
+                *)
+                    exit 1
+                    ;;
+            esac
+            ;;
+        c)
+            CPUS="$OPTARG"
+            ;;
+        d)
+            DISK="$OPTARG"
+            ;;
+        g)
+            CONSOLE=""
+            GRAPHICS="spice"
+            ;;
+        m)
+            MEMORY="$OPTARG"
+            ;;
+        n)
+            NETWORK="$OPTARG"
+            ;;
+        r)
+            RELEASE="$OPTARG"
+            ;;
+        *)
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+NAME="$1"
+shift
+
+case "$DISTRO" in
+    alma)
+        TITLE="AlmaLinux"
+        LOCATION="https://repo.almalinux.org/almalinux/${RELEASE}/BaseOS/x86_64/os/"
+        ;;
+    rocky)
+        TITLE="Rocky Linux"
+        LOCATION="https://download.rockylinux.org/pub/rocky/${RELEASE}/BaseOS/x86_64/os/"
+        ;;
+    *)
+        exit 1
+        ;;
+esac
+
+EXTRA_ARGS="inst.ks=file:/install.ks hostname=${NAME}"
+[ -n "$CONSOLE" ] && EXTRA_ARGS="${EXTRA_ARGS} console=${CONSOLE}"
+
+TEMP="$(mktemp -d)"
+trap 'rm -fr ${TEMP}' EXIT
+
+cat > "${TEMP}/install.ks" <<EOF
+text
+reboot
+
+lang en_US.UTF-8
+rootpw --lock
+firewall --use-system-defaults
+services --disabled=firewalld --enabled=nftables
+timezone --utc UTC
+
+autopart --nohome --nolvm
+clearpart --all --initlabel --disklabel=gpt
+ignoredisk --only-use=vda
+
+%packages
+@core
+%end
+
+%post
+umask 077
+mkdir /root/.ssh
+printf "$(awk -v ORS='\\12' '/^ssh-/' ~/.ssh/authorized_keys)" > /root/.ssh/authorized_keys
+%end
+EOF
+
+set -x
+
+virt-install \
+    --name "$NAME" \
+    --memory "$MEMORY" \
+    --metadata "title=${TITLE} ${RELEASE}" \
+    --vcpus "sockets=1,cores=${CPUS},threads=1" \
+    --cpu "host-passthrough" \
+    --location "$LOCATION" \
+    --extra-args "$EXTRA_ARGS" \
+    --initrd-inject="${TEMP}/install.ks" \
+    --boot "useserial=on" \
+    --disk "cache=none,format=raw,size=${DISK}" \
+    --network "$NETWORK" \
+    --graphics "$GRAPHICS" \
+    "$@"

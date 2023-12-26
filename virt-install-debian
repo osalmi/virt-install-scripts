@@ -1,0 +1,113 @@
+#!/bin/sh
+
+set -eu
+umask 077
+
+CONSOLE="ttyS0"
+CPUS="2"
+DISK="20"
+GRAPHICS="none"
+MEMORY="2048"
+NETWORK="network=default"
+RELEASE="bookworm"
+TITLE="Debian"
+
+while getopts c:d:gm:n:r: OPT; do
+    case "$OPT" in
+        c)
+            CPUS="$OPTARG"
+            ;;
+        d)
+            DISK="$OPTARG"
+            ;;
+        g)
+            CONSOLE=""
+            GRAPHICS="spice"
+            ;;
+        m)
+            MEMORY="$OPTARG"
+            ;;
+        n)
+            NETWORK="$OPTARG"
+            ;;
+        r)
+            RELEASE="$OPTARG"
+            ;;
+        *)
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+NAME="$1"
+shift
+
+case "$RELEASE" in
+    testing)
+        LOCATION="https://d-i.debian.org/daily-images/amd64/"
+        ;;
+    *)
+        LOCATION="https://deb.debian.org/debian/dists/${RELEASE}/main/installer-amd64/"
+        ;;
+esac
+
+EXTRA_ARGS="auto=true priority=critical"
+[ -n "$CONSOLE" ] && EXTRA_ARGS="${EXTRA_ARGS} console=${CONSOLE}"
+
+TEMP="$(mktemp -d)"
+trap 'rm -fr ${TEMP}' EXIT
+
+cat > "${TEMP}/preseed.cfg" <<EOF
+d-i debian-installer/locale string en_US.UTF-8
+
+d-i netcfg/choose_interface select auto
+d-i netcfg/hostname string ${NAME%%.*}
+
+d-i passwd/make-user boolean false
+d-i passwd/root-login boolean true
+d-i passwd/root-password-crypted password !!
+
+d-i clock-setup/ntp boolean true
+d-i clock-setup/utc boolean true
+d-i time/zone string UTC
+
+d-i partman-auto/disk string /dev/vda
+d-i partman-auto/method string regular
+d-i partman-auto/choose_recipe select atomic
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+
+d-i pkgsel/updatedb boolean false
+d-i pkgsel/update-policy select none
+
+tasksel tasksel/first multiselect standard
+d-i pkgsel/include string openresolv openssh-server
+
+d-i grub-installer/bootdev string default
+
+d-i preseed/late_command string \\
+in-target sh -c 'umask 077; mkdir /root/.ssh; printf "$(awk -v ORS='\\12' '/^ssh-/' ~/.ssh/authorized_keys)" > /root/.ssh/authorized_keys'
+
+d-i finish-install/keep-consoles boolean true
+d-i finish-install/reboot_in_progress note
+EOF
+
+set -x
+
+virt-install \
+    --name "$NAME" \
+    --memory "$MEMORY" \
+    --metadata "title=${TITLE} ${RELEASE}" \
+    --vcpus "sockets=1,cores=${CPUS},threads=1" \
+    --cpu "host-passthrough" \
+    --location "$LOCATION" \
+    --extra-args "$EXTRA_ARGS" \
+    --initrd-inject="${TEMP}/preseed.cfg" \
+    --boot "useserial=on" \
+    --disk "cache=none,format=raw,size=${DISK}" \
+    --network "$NETWORK" \
+    --graphics "$GRAPHICS" \
+    "$@"
