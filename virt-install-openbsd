@@ -8,7 +8,7 @@ DISK="20"
 GRAPHICS="none"
 MEMORY="2048"
 NETWORK="network=default"
-RELEASE="7.5"
+RELEASE="7.6"
 TITLE="OpenBSD"
 
 while getopts c:d:m:n: OPT; do
