@@ -74,7 +74,21 @@ d-i time/zone string UTC
 
 d-i partman-auto/disk string /dev/vda
 d-i partman-auto/method string regular
-d-i partman-auto/choose_recipe select atomic
+d-i partman-auto/expert_recipe string \\
+simple :: \\
+501 501 501 free \\
+    \$iflabel{ gpt } \\
+    \$primary{ } \\
+    method{ efi } \\
+    format{ } . \\
+2000 2000 -1 ext4 \\
+    \$primary{ } \\
+    method{ format } \\
+    format{ } \\
+    use_filesystem{ } \\
+    filesystem{ ext4 } \\
+    mountpoint{ / } .
+d-i partman-basicfilesystems/no_swap boolean false
 d-i partman-partitioning/confirm_write_new_label boolean true
 d-i partman/choose_partition select finish
 d-i partman/confirm boolean true
@@ -84,11 +98,12 @@ d-i pkgsel/updatedb boolean false
 d-i pkgsel/update-policy select unattended-upgrades
 
 tasksel tasksel/first multiselect standard
-d-i pkgsel/include string openresolv openssh-server
+d-i pkgsel/include string openresolv openssh-server systemd-zram-generator
 
 d-i grub-installer/bootdev string default
 
 d-i preseed/late_command string \\
+in-target sh -c 'printf "compression-algorithm=zstd\\12zram-size=min(ram, 4096)\\12" >> /etc/systemd/zram-generator.conf'; \\
 in-target sh -c 'umask 077; mkdir /root/.ssh; printf "$(awk -v ORS='\\12' '/^ssh-/' ~/.ssh/authorized_keys)" > /root/.ssh/authorized_keys'
 
 d-i finish-install/keep-consoles boolean true
