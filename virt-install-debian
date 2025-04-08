@@ -103,7 +103,7 @@ d-i pkgsel/include string openresolv openssh-server systemd-zram-generator
 d-i grub-installer/bootdev string default
 
 d-i preseed/late_command string \\
-in-target sh -c 'printf "compression-algorithm=zstd\\12zram-size=min(ram, 4096)\\12" >> /etc/systemd/zram-generator.conf'; \\
+in-target sh -c 'printf "[zram0]\\12compression-algorithm=zstd\\12zram-size=min(ram, 4096)\\12" > /etc/systemd/zram-generator.conf'; \\
 in-target sh -c 'umask 077; mkdir /root/.ssh; printf "$(awk -v ORS='\\12' '/^ssh-/' ~/.ssh/authorized_keys)" > /root/.ssh/authorized_keys'
 
 d-i finish-install/keep-consoles boolean true
