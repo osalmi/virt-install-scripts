@@ -8,7 +8,7 @@ DISK="20"
 GRAPHICS="none"
 MEMORY="2048"
 NETWORK="network=default"
-RELEASE="7.6"
+RELEASE="7.7"
 TITLE="OpenBSD"
 
 while getopts c:d:m:n: OPT; do
@@ -37,6 +37,7 @@ shift
 
 # use the latest available openbsd
 OSINFO="$(osinfo-query -f short-id os | awk '/openbsd[0-9]/ { print $1 }' | tail -1)"
+[ -n "$OSINFO" ] || exit 1
 
 TEMP="$(mktemp -d)"
 trap 'rm -fr ${TEMP}' EXIT
