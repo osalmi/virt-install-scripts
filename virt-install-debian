@@ -8,12 +8,16 @@ CPUS="2"
 DISK="20"
 GRAPHICS="none"
 MEMORY="2048"
+NETNAME=""
 NETWORK="network=default"
 RELEASE="bookworm"
 TITLE="Debian"
 
-while getopts c:d:gm:n:r: OPT; do
+while getopts N:c:d:gm:n:r: OPT; do
     case "$OPT" in
+        N)
+            NETNAME="$OPTARG"
+            ;;
         c)
             CPUS="$OPTARG"
             ;;
@@ -43,6 +47,10 @@ shift $((OPTIND-1))
 NAME="$1"
 shift
 
+if [ -z "$NETNAME" ]; then
+    NETNAME="$NAME"
+fi
+
 case "$RELEASE" in
     testing)
         LOCATION="https://d-i.debian.org/daily-images/amd64/"
@@ -62,7 +70,7 @@ cat > "${TEMP}/preseed.cfg" <<EOF
 d-i debian-installer/locale string en_US.UTF-8
 
 d-i netcfg/choose_interface select auto
-d-i netcfg/hostname string ${NAME%%.*}
+d-i netcfg/hostname string ${NETNAME%%.*}
 
 d-i passwd/make-user boolean false
 d-i passwd/root-login boolean true

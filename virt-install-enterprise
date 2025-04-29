@@ -8,10 +8,11 @@ CPUS="2"
 DISK="20"
 GRAPHICS="none"
 MEMORY="2048"
+NETNAME=""
 NETWORK="network=default"
 RELEASE="9"
 
-while getopts c:d:gm:n:r:-: OPT; do
+while getopts N:c:d:gm:n:r:-: OPT; do
     case "$OPT" in
         -)
             case "$OPTARG" in
@@ -22,6 +23,9 @@ while getopts c:d:gm:n:r:-: OPT; do
                     exit 1
                     ;;
             esac
+            ;;
+        N)
+            NETNAME="$OPTARG"
             ;;
         c)
             CPUS="$OPTARG"
@@ -52,6 +56,10 @@ shift $((OPTIND-1))
 NAME="$1"
 shift
 
+if [ -z "$NETNAME" ]; then
+    NETNAME="$NAME"
+fi
+
 case "$DISTRO" in
     alma)
         TITLE="AlmaLinux"
@@ -66,7 +74,7 @@ case "$DISTRO" in
         ;;
 esac
 
-EXTRA_ARGS="inst.ks=file:/install.ks hostname=${NAME}"
+EXTRA_ARGS="inst.ks=file:/install.ks hostname=${NETNAME}"
 [ -n "$CONSOLE" ] && EXTRA_ARGS="${EXTRA_ARGS} console=${CONSOLE}"
 
 TEMP="$(mktemp -d)"
