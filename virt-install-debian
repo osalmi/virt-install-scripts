@@ -84,17 +84,17 @@ d-i partman-auto/disk string /dev/vda
 d-i partman-auto/method string regular
 d-i partman-auto/expert_recipe string \\
 simple :: \\
-501 501 501 free \\
+1000 1000 1000 free \\
     \$iflabel{ gpt } \\
     \$primary{ } \\
     method{ efi } \\
     format{ } . \\
-2000 2000 -1 ext4 \\
+2000 2000 -1 xfs \\
     \$primary{ } \\
     method{ format } \\
     format{ } \\
     use_filesystem{ } \\
-    filesystem{ ext4 } \\
+    filesystem{ xfs } \\
     mountpoint{ / } .
 d-i partman-basicfilesystems/no_swap boolean false
 d-i partman-partitioning/confirm_write_new_label boolean true
