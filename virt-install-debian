@@ -10,7 +10,7 @@ GRAPHICS="none"
 MEMORY="2048"
 NETNAME=""
 NETWORK="network=default"
-RELEASE="bookworm"
+RELEASE="trixie"
 TITLE="Debian"
 
 while getopts N:c:d:gm:n:r: OPT; do
