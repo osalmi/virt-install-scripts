@@ -62,11 +62,9 @@ fi
 
 case "$DISTRO" in
     alma)
-        TITLE="AlmaLinux"
         LOCATION="https://repo.almalinux.org/almalinux/${RELEASE}/BaseOS/x86_64/os/"
         ;;
     rocky)
-        TITLE="Rocky Linux"
         LOCATION="https://download.rockylinux.org/pub/rocky/${RELEASE}/BaseOS/x86_64/os/"
         ;;
     *)
@@ -110,7 +108,6 @@ set -x
 virt-install \
     --name "$NAME" \
     --memory "$MEMORY" \
-    --metadata "title=${TITLE} ${RELEASE}" \
     --vcpus "sockets=1,cores=${CPUS},threads=1" \
     --cpu "host-passthrough" \
     --location "$LOCATION" \

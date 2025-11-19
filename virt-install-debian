@@ -11,7 +11,6 @@ MEMORY="2048"
 NETNAME=""
 NETWORK="network=default"
 RELEASE="trixie"
-TITLE="Debian"
 
 while getopts N:c:d:gm:n:r: OPT; do
     case "$OPT" in
@@ -128,7 +127,6 @@ set -x
 virt-install \
     --name "$NAME" \
     --memory "$MEMORY" \
-    --metadata "title=${TITLE} ${RELEASE}" \
     --vcpus "sockets=1,cores=${CPUS},threads=1" \
     --cpu "host-passthrough" \
     --location "$LOCATION" \

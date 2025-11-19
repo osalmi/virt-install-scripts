@@ -9,7 +9,6 @@ GRAPHICS="none"
 MEMORY="2048"
 NETWORK="network=default"
 RELEASE="7.7"
-TITLE="OpenBSD"
 
 while getopts c:d:m:n: OPT; do
     case "$OPT" in
@@ -53,7 +52,6 @@ chmod -R a+rX "$TEMP"
 virt-install \
     --name "$NAME" \
     --memory "$MEMORY" \
-    --metadata "title=${TITLE} ${RELEASE}" \
     --vcpus "sockets=1,cores=${CPUS},threads=1" \
     --cpu "host-passthrough" \
     --cdrom "$ISO" \
