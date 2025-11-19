@@ -8,7 +8,7 @@ DISK="20"
 GRAPHICS="none"
 MEMORY="2048"
 NETWORK="network=default"
-RELEASE="7.7"
+RELEASE="7.8"
 
 while getopts c:d:m:n: OPT; do
     case "$OPT" in
