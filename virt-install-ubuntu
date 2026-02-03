@@ -1,0 +1,98 @@
+#!/bin/sh
+
+set -eu
+umask 077
+
+CPUS="2"
+DISK="20"
+GRAPHICS="none"
+MEMORY="4096"
+NETWORK="network=default"
+RELEASE="24.04.3"
+REALNAME=""
+
+while getopts N:c:d:gm:n:r: OPT; do
+    case "$OPT" in
+        N)
+            REALNAME="$OPTARG"
+            ;;
+        c)
+            CPUS="$OPTARG"
+            ;;
+        d)
+            DISK="$OPTARG"
+            ;;
+        g)
+            GRAPHICS="spice"
+            ;;
+        m)
+            MEMORY="$OPTARG"
+            ;;
+        n)
+            NETWORK="$OPTARG"
+            ;;
+        r)
+            RELEASE="$OPTARG"
+            ;;
+        *)
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+NAME="$1"
+shift
+
+if [ -z "$REALNAME" ]; then
+    REALNAME="$NAME"
+fi
+
+TEMP="$(mktemp -d)"
+trap 'rm -fr ${TEMP}' EXIT
+
+URL="https://releases.ubuntu.com/${RELEASE}/ubuntu-${RELEASE}-live-server-amd64.iso"
+ISO="${TEMP}/$(basename "$URL")"
+
+curl -f -o "$ISO" "$URL"
+chmod 0644 "$ISO"
+chmod 0711 "$TEMP"
+
+cat > "${TEMP}/autoinstall.yml" <<EOF
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: ${REALNAME%%.*}
+    username: root
+    password: '!!'
+  ssh:
+    install-server: yes
+    authorized-keys:
+$(awk '/^ssh-/ { print "      - " $0 }' ~/.ssh/authorized_keys)
+  storage:
+    layout:
+      name: direct
+    swap:
+      size: 0
+  packages:
+    - systemd-zram-generator
+  late-commands:
+    - curtin in-target -- printf '[zram0]\ncompression-algorithm=zstd\nzram-size=(ram/2)\n' > /etc/systemd/zram-generator.conf
+EOF
+
+set -x
+
+virt-install \
+    --name "$NAME" \
+    --memory "$MEMORY" \
+    --vcpus "sockets=1,cores=${CPUS},threads=1" \
+    --cpu "host-passthrough" \
+    --cdrom "$ISO" \
+    --cloud-init "disable=on,user-data=${TEMP}/autoinstall.yml" \
+    --boot "useserial=on" \
+    --osinfo "ubuntu${RELEASE%.*}" \
+    --disk "cache=none,format=raw,size=${DISK}" \
+    --network "$NETWORK" \
+    --graphics "$GRAPHICS" \
+    "$@"

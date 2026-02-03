@@ -44,10 +44,11 @@ trap 'rm -fr ${TEMP}' EXIT
 URL="https://cdn.openbsd.org/pub/OpenBSD/${RELEASE}/amd64/cd$(echo "$RELEASE" | tr -d .).iso"
 ISO="${TEMP}/$(basename "$URL")"
 
-set -x
+curl -f -o "$ISO" "$URL"
+chmod 0644 "$ISO"
+chmod 0711 "$TEMP"
 
-curl -o "$ISO" "$URL"
-chmod -R a+rX "$TEMP"
+set -x
 
 virt-install \
     --name "$NAME" \
