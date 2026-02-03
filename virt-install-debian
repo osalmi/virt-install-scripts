@@ -109,12 +109,13 @@ d-i pkgsel/updatedb boolean false
 d-i pkgsel/update-policy select unattended-upgrades
 
 tasksel tasksel/first multiselect standard
-d-i pkgsel/include string openresolv openssh-server systemd-zram-generator
+d-i pkgsel/include string openssh-server systemd-zram-generator
 
 d-i grub-installer/bootdev string default
 
 d-i preseed/late_command string \\
-in-target sh -c 'echo "APT::Periodic::CleanInterval \\"1\\";" >> /etc/apt/apt.conf.d/20auto-upgrades'; \\
+in-target sh -c 'sed -i "s/^iface.*inet6 auto/#&/" /etc/network/interfaces'; \\
+in-target sh -c 'printf "APT::Periodic::CleanInterval \\"1\\";\\12" >> /etc/apt/apt.conf.d/20auto-upgrades'; \\
 in-target sh -c 'printf "[zram0]\\12compression-algorithm=zstd\\12zram-size=(ram/2)\\12" > /etc/systemd/zram-generator.conf'; \\
 in-target sh -c 'umask 077; mkdir /root/.ssh; printf "$(awk -v ORS='\\12' '/^ssh-/' ~/.ssh/authorized_keys)" > /root/.ssh/authorized_keys'
 
