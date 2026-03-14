@@ -109,7 +109,7 @@ d-i pkgsel/updatedb boolean false
 d-i pkgsel/update-policy select unattended-upgrades
 
 tasksel tasksel/first multiselect standard
-d-i pkgsel/include string bc dc ed openssh-server systemd-zram-generator
+d-i pkgsel/include string bc dc ed openssh-server rsync systemd-zram-generator
 
 d-i grub-installer/bootdev string default
 
