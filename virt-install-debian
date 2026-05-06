@@ -116,7 +116,8 @@ d-i grub-installer/bootdev string default
 d-i preseed/late_command string \\
 in-target sh -c 'sed -i "s/^iface.*inet6 auto/#&/" /etc/network/interfaces'; \\
 in-target sh -c 'printf "APT::Periodic::CleanInterval \\"1\\";\\12" >> /etc/apt/apt.conf.d/20auto-upgrades'; \\
-in-target sh -c 'printf "[zram0]\\12compression-algorithm=zstd\\12zram-size=(ram/2)\\12" > /etc/systemd/zram-generator.conf'; \\
+in-target sh -c 'printf "[zram0]\\12zram-size=min(ram, 4096)\\12compression-algorithm=zstd\\12" > /etc/systemd/zram-generator.conf'; \\
+in-target sh -c 'printf "vm.page-cluster = 0\\12vm.swappiness = 100\\12" > /etc/sysctl.d/90-zram.conf'; \\
 in-target sh -c 'umask 077; mkdir /root/.ssh; printf "$(awk -v ORS='\\12' '/^ssh-/' ~/.ssh/authorized_keys)" > /root/.ssh/authorized_keys'
 
 d-i finish-install/keep-consoles boolean true
