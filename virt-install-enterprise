@@ -7,10 +7,10 @@ CONSOLE="ttyS0"
 CPUS="2"
 DISK="20"
 GRAPHICS="none"
-MEMORY="2048"
+MEMORY="4096"
 NETNAME=""
 NETWORK="network=default"
-RELEASE="9"
+RELEASE="10"
 
 while getopts N:c:d:gm:n:r:-: OPT; do
     case "$OPT" in
