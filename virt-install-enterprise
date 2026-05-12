@@ -15,14 +15,7 @@ RELEASE="10"
 while getopts N:c:d:gm:n:r:-: OPT; do
     case "$OPT" in
         -)
-            case "$OPTARG" in
-                alma|rocky)
-                    DISTRO="$OPTARG"
-                    ;;
-                *)
-                    exit 1
-                    ;;
-            esac
+            DISTRO="$OPTARG"
             ;;
         N)
             NETNAME="$OPTARG"
@@ -56,23 +49,28 @@ shift $((OPTIND-1))
 NAME="$1"
 shift
 
-if [ -z "$NETNAME" ]; then
-    NETNAME="$NAME"
-fi
-
 case "$DISTRO" in
     alma|almalinux)
         LOCATION="https://repo.almalinux.org/almalinux/${RELEASE}/BaseOS/x86_64/os/"
         OSINFO="almalinux${RELEASE}"
+        ;;
+    centos|centos-stream)
+        LOCATION="https://mirror.stream.centos.org/${RELEASE}-stream/BaseOS/x86_64/os"
+        OSINFO="centos-stream${RELEASE}"
         ;;
     rocky)
         LOCATION="https://download.rockylinux.org/pub/rocky/${RELEASE}/BaseOS/x86_64/os/"
         OSINFO="rocky${RELEASE}"
         ;;
     *)
+        echo "unknown distribution: ${DISTRO}" 1>&2
         exit 1
         ;;
 esac
+
+if [ -z "$NETNAME" ]; then
+    NETNAME="$NAME"
+fi
 
 EXTRA_ARGS="inst.ks=file:/install.ks hostname=${NETNAME}"
 [ -n "$CONSOLE" ] && EXTRA_ARGS="${EXTRA_ARGS} console=${CONSOLE}"
