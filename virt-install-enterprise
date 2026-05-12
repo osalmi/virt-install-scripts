@@ -61,11 +61,13 @@ if [ -z "$NETNAME" ]; then
 fi
 
 case "$DISTRO" in
-    alma)
+    alma|almalinux)
         LOCATION="https://repo.almalinux.org/almalinux/${RELEASE}/BaseOS/x86_64/os/"
+        OSINFO="almalinux${RELEASE}"
         ;;
     rocky)
         LOCATION="https://download.rockylinux.org/pub/rocky/${RELEASE}/BaseOS/x86_64/os/"
+        OSINFO="rocky${RELEASE}"
         ;;
     *)
         exit 1
@@ -114,6 +116,7 @@ virt-install \
     --extra-args "$EXTRA_ARGS" \
     --initrd-inject="${TEMP}/install.ks" \
     --boot "useserial=on" \
+    --osinfo "$OSINFO" \
     --disk "cache=none,format=raw,size=${DISK}" \
     --network "$NETWORK" \
     --graphics "$GRAPHICS" \
