@@ -8,14 +8,14 @@ CPUS="2"
 DISK="20"
 GRAPHICS="none"
 MEMORY="2048"
-NETNAME=""
 NETWORK="network=default"
 RELEASE="trixie"
+VMHOSTNAME=""
 
 while getopts N:c:d:gm:n:r: OPT; do
     case "$OPT" in
         N)
-            NETNAME="$OPTARG"
+            VMHOSTNAME="$OPTARG"
             ;;
         c)
             CPUS="$OPTARG"
@@ -43,12 +43,8 @@ while getopts N:c:d:gm:n:r: OPT; do
 done
 shift $((OPTIND-1))
 
-NAME="$1"
+VMNAME="$1"
 shift
-
-if [ -z "$NETNAME" ]; then
-    NETNAME="$NAME"
-fi
 
 case "$RELEASE" in
     testing)
@@ -58,6 +54,10 @@ case "$RELEASE" in
         LOCATION="https://deb.debian.org/debian/dists/${RELEASE}/main/installer-amd64/"
         ;;
 esac
+
+if [ -z "$VMHOSTNAME" ]; then
+    VMHOSTNAME="$VMNAME"
+fi
 
 EXTRA_ARGS="auto=true priority=critical"
 [ -n "$CONSOLE" ] && EXTRA_ARGS="${EXTRA_ARGS} console=${CONSOLE}"
@@ -69,7 +69,7 @@ cat > "${TEMP}/preseed.cfg" <<EOF
 d-i debian-installer/locale string en_US.UTF-8
 
 d-i netcfg/choose_interface select auto
-d-i netcfg/hostname string ${NETNAME%%.*}
+d-i netcfg/hostname string ${VMHOSTNAME%%.*}
 
 d-i passwd/make-user boolean false
 d-i passwd/root-login boolean true
@@ -127,7 +127,7 @@ EOF
 set -x
 
 virt-install \
-    --name "$NAME" \
+    --name "$VMNAME" \
     --memory "$MEMORY" \
     --vcpus "sockets=1,cores=${CPUS},threads=1" \
     --cpu "host-passthrough" \

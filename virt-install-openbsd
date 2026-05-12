@@ -31,7 +31,7 @@ while getopts c:d:m:n: OPT; do
 done
 shift $((OPTIND-1))
 
-NAME="$1"
+VMNAME="$1"
 shift
 
 # use the latest available openbsd
@@ -51,7 +51,7 @@ chmod 0711 "$TEMP"
 set -x
 
 virt-install \
-    --name "$NAME" \
+    --name "$VMNAME" \
     --memory "$MEMORY" \
     --vcpus "sockets=1,cores=${CPUS},threads=1" \
     --cpu "host-passthrough" \

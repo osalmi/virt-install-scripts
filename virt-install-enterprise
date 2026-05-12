@@ -8,9 +8,9 @@ CPUS="2"
 DISK="20"
 GRAPHICS="none"
 MEMORY="4096"
-NETNAME=""
 NETWORK="network=default"
 RELEASE="10"
+VMHOSTNAME=""
 
 while getopts N:c:d:gm:n:r:-: OPT; do
     case "$OPT" in
@@ -18,7 +18,7 @@ while getopts N:c:d:gm:n:r:-: OPT; do
             DISTRO="$OPTARG"
             ;;
         N)
-            NETNAME="$OPTARG"
+            VMHOSTNAME="$OPTARG"
             ;;
         c)
             CPUS="$OPTARG"
@@ -46,7 +46,7 @@ while getopts N:c:d:gm:n:r:-: OPT; do
 done
 shift $((OPTIND-1))
 
-NAME="$1"
+VMNAME="$1"
 shift
 
 case "$DISTRO" in
@@ -68,11 +68,11 @@ case "$DISTRO" in
         ;;
 esac
 
-if [ -z "$NETNAME" ]; then
-    NETNAME="$NAME"
+if [ -z "$VMHOSTNAME" ]; then
+    VMHOSTNAME="$VMNAME"
 fi
 
-EXTRA_ARGS="inst.ks=file:/install.ks hostname=${NETNAME}"
+EXTRA_ARGS="inst.ks=file:/install.ks hostname=${VMHOSTNAME}"
 [ -n "$CONSOLE" ] && EXTRA_ARGS="${EXTRA_ARGS} console=${CONSOLE}"
 
 TEMP="$(mktemp -d)"
@@ -106,7 +106,7 @@ EOF
 set -x
 
 virt-install \
-    --name "$NAME" \
+    --name "$VMNAME" \
     --memory "$MEMORY" \
     --vcpus "sockets=1,cores=${CPUS},threads=1" \
     --cpu "host-passthrough" \
