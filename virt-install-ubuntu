@@ -8,7 +8,7 @@ DISK="20"
 GRAPHICS="none"
 MEMORY="4096"
 NETWORK="network=default"
-RELEASE="24.04.3"
+RELEASE="26.04"
 REALNAME=""
 
 while getopts N:c:d:gm:n:r: OPT; do
@@ -78,7 +78,7 @@ $(awk '/^ssh-/ { print "      - " $0 }' ~/.ssh/authorized_keys)
   packages:
     - systemd-zram-generator
   late-commands:
-    - curtin in-target -- printf '[zram0]\ncompression-algorithm=zstd\nzram-size=(ram/2)\n' > /etc/systemd/zram-generator.conf
+    - curtin in-target -- printf '[zram0]\nzram-size=min(ram, 4096)\ncompression-algorithm=zstd\n' > /etc/systemd/zram-generator.conf
 EOF
 
 set -x
@@ -91,7 +91,7 @@ virt-install \
     --cdrom "$ISO" \
     --cloud-init "disable=on,user-data=${TEMP}/autoinstall.yml" \
     --boot "useserial=on" \
-    --osinfo "ubuntu${RELEASE%.*}" \
+    --osinfo "ubuntu-lts-latest" \
     --disk "cache=none,format=raw,size=${DISK}" \
     --network "$NETWORK" \
     --graphics "$GRAPHICS" \
