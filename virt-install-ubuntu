@@ -8,7 +8,7 @@ DISK="20"
 GRAPHICS="none"
 MEMORY="4096"
 NETWORK="network=default"
-RELEASE="26.04"
+RELEASE="26.04.1"
 REALNAME=""
 
 while getopts N:c:d:gm:n:r: OPT; do
