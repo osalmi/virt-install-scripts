@@ -72,7 +72,7 @@ if [ -z "$VMHOSTNAME" ]; then
     VMHOSTNAME="$VMNAME"
 fi
 
-EXTRA_ARGS="inst.ks=file:/install.ks hostname=${VMHOSTNAME}"
+EXTRA_ARGS="inst.ks=file:/install.ks hostname=${VMHOSTNAME%%.*}"
 [ -n "$CONSOLE" ] && EXTRA_ARGS="${EXTRA_ARGS} console=${CONSOLE}"
 
 TEMP="$(mktemp -d)"
