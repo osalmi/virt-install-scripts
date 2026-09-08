@@ -9,12 +9,12 @@ GRAPHICS="none"
 MEMORY="4096"
 NETWORK="network=default"
 RELEASE="26.04.1"
-REALNAME=""
+VMHOSTNAME=""
 
 while getopts N:c:d:gm:n:r: OPT; do
     case "$OPT" in
         N)
-            REALNAME="$OPTARG"
+            VMHOSTNAME="$OPTARG"
             ;;
         c)
             CPUS="$OPTARG"
@@ -44,8 +44,8 @@ shift $((OPTIND-1))
 VMNAME="$1"
 shift
 
-if [ -z "$REALNAME" ]; then
-    REALNAME="$VMNAME"
+if [ -z "$VMHOSTNAME" ]; then
+    VMHOSTNAME="$VMNAME"
 fi
 
 TEMP="$(mktemp -d)"
@@ -63,8 +63,8 @@ cat > "${TEMP}/autoinstall.yml" <<EOF
 autoinstall:
   version: 1
   identity:
-    hostname: ${REALNAME%%.*}
-    username: root
+    hostname: ${VMHOSTNAME%%.*}
+    username: ubuntu
     password: '!!'
   ssh:
     install-server: yes
@@ -78,7 +78,8 @@ $(awk '/^ssh-/ { print "      - " $0 }' ~/.ssh/authorized_keys)
   packages:
     - systemd-zram-generator
   late-commands:
-    - curtin in-target -- printf '[zram0]\nzram-size=min(ram, 4096)\ncompression-algorithm=zstd\n' > /etc/systemd/zram-generator.conf
+    - curtin in-target -- /bin/sh -c "umask 227 && printf 'ubuntu ALL=(ALL) NOPASSWD:ALL\n' > /etc/sudoers.d/ubuntu"
+    - curtin in-target -- /bin/sh -c "printf '[zram0]\nzram-size=min(ram, 4096)\ncompression-algorithm=zstd\n' > /etc/systemd/zram-generator.conf"
 EOF
 
 set -x
